@@ -1,0 +1,27 @@
+{
+  "claim_id": "FCL-2026-0147",
+  "carrier": "BlueLine Freight Systems",
+  "pro_number": "BLF-77209115",
+  "claim_type_codes": [
+    "SHORTAGE",
+    "DAMAGE",
+    "DELAY"
+  ],
+  "status": "NEGOTIATION",
+  "owner": "Maya Chen",
+  "opened_at": "2026-05-13T09:02:11-05:00",
+  "claim_amount_usd": 29920.0,
+  "reserve_usd": 15000.0,
+  "carrier_offer_usd": 7225.0,
+  "last_activity_at": "2026-05-26T08:54:00-05:00",
+  "required_document_flags": {
+    "commercial_invoice": "RECEIVED",
+    "bill_of_lading": "RECEIVED",
+    "proof_of_delivery": "RECEIVED",
+    "damage_photos": "PARTIAL",
+    "inspection_report": "RECEIVED",
+    "packaging_specification": "MISSING",
+    "carrier_agreement": "RECEIVED"
+  },
+  "analyst_note": "Promotion-impact component is commercially important but may not be contractually recoverable. Need reconcile EDI piece count vs POD."
+}

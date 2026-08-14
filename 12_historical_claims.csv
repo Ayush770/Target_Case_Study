@@ -1,0 +1,31 @@
+claim_id,carrier,issue_type,service_level,claimed_usd,settled_usd,settlement_pct,days_to_settle,evidence,negotiation_summary,notes
+HC-2025-0067,BlueLine Freight Systems,DAMAGE+SHORTAGE,Standard LTL,12750,10980,0.8612,29,Photos+POD+inspection,Carrier initially disputed 3 damaged units; settled after inspection corroboration,No delay component
+HC-2025-0094,BlueLine Freight Systems,DELAY,Standard LTL,18000,1450,0.0806,18,POD+TMS,Promotion markdown denied; commercial freight refund approved,No guaranteed service
+HC-2025-0118,BlueLine Freight Systems,DAMAGE,Standard LTL,9350,7600,0.8128,34,POD+2 photos+inspection,Partial packaging dispute; missing packaging spec,Very similar evidence profile
+HC-2025-0142,BlueLine Freight Systems,DAMAGE+DELAY,Standard LTL,21400,9100,0.4252,41,POD+photos+invoice,Delay damages denied; product damage settled near invoice value,Retail launch missed
+HC-2026-0021,BlueLine Freight Systems,SHORTAGE,Standard LTL,5100,5100,1.0,12,POD+invoice,Clear shortage on signed POD,Full direct loss paid
+HC-2026-0044,BlueLine Freight Systems,DAMAGE,Guaranteed Appointment,6800,6450,0.9485,22,POD+photos+inspection,Cargo paid less salvage; separate freight refund,Guarantee purchased
+HC-2026-0063,ArrowPeak Logistics,DAMAGE+SHORTAGE,Standard LTL,15400,13100,0.8506,37,POD+invoice+photos,Negotiated 85% after evidence gap,Different carrier
+HC-2026-0075,BlueLine Freight Systems,DAMAGE,Standard LTL,6200,4800,0.7742,27,POD+photos,No inspection; disputed hidden damage,Weak documentation
+HC-2024-0200,ArrowPeak Logistics,DAMAGE,Standard LTL,13000,10600,0.8154,49,POD+photos+inspection,Packaging allocation negotiated,No guaranteed service
+HC-2024-0201,ArrowPeak Logistics,SHORTAGE,Guaranteed Appointment,12550,9850,0.7849,30,POD+invoice,Settled after two counteroffers,Long-term account
+HC-2024-0202,BlueLine Freight Systems,DELAY,Standard LTL,24100,2050,0.0851,28,POD+invoice,Settled after two counteroffers,
+HC-2024-0203,BlueLine Freight Systems,DELAY,Standard LTL,12200,1350,0.1107,41,POD+invoice+photos,Settled after two counteroffers,Salvage credited
+HC-2024-0204,BlueLine Freight Systems,DAMAGE,Guaranteed Appointment,6350,5450,0.8583,13,POD+invoice+inspection,Shortage corroborated by consignee record,Evidence complete
+HC-2024-0205,BlueLine Freight Systems,DAMAGE,Standard LTL,8050,7475,0.9286,31,POD+invoice+inspection,Settled after two counteroffers,Evidence complete
+HC-2024-0206,BlueLine Freight Systems,DAMAGE+SHORTAGE,Standard LTL,11650,9525,0.8176,33,POD+invoice+photos,Shortage corroborated by consignee record,Salvage credited
+HC-2024-0207,BlueLine Freight Systems,DAMAGE,Standard LTL,7700,6450,0.8377,43,POD+photos+inspection,Settled after two counteroffers,Salvage credited
+HC-2024-0208,BlueLine Freight Systems,DAMAGE,Standard LTL,5250,4675,0.8905,14,POD+invoice+photos,Initial carrier denial narrowed after documentation,Long-term account
+HC-2024-0209,BlueLine Freight Systems,DAMAGE,Standard LTL,8600,6325,0.7355,50,POD+photos+inspection,Initial carrier denial narrowed after documentation,No guaranteed service
+HC-2024-0210,ArrowPeak Logistics,DAMAGE,Standard LTL,16700,13875,0.8308,57,POD+photos+inspection,Packaging allocation negotiated,No guaranteed service
+HC-2024-0211,ArrowPeak Logistics,SHORTAGE,Standard LTL,8100,6600,0.8148,13,POD+invoice+photos,Direct cargo loss paid; commercial damages excluded,No guaranteed service
+HC-2024-0212,RoadBridge Freight,DAMAGE+DELAY,Standard LTL,25050,11675,0.4661,19,POD+invoice,Initial carrier denial narrowed after documentation,No guaranteed service
+HC-2024-0213,BlueLine Freight Systems,DAMAGE+SHORTAGE,Standard LTL,10400,9875,0.9495,23,POD+invoice,Settled after two counteroffers,No guaranteed service
+HC-2024-0214,BlueLine Freight Systems,DAMAGE,Standard LTL,15350,10975,0.715,46,POD+invoice,Shortage corroborated by consignee record,No guaranteed service
+HC-2024-0215,ArrowPeak Logistics,DAMAGE,Standard LTL,3300,2850,0.8636,39,POD+invoice+inspection,Shortage corroborated by consignee record,Long-term account
+HC-2024-0216,RoadBridge Freight,DAMAGE+SHORTAGE,Standard LTL,18950,16550,0.8734,36,POD+invoice,Settled after two counteroffers,
+HC-2024-0217,ArrowPeak Logistics,SHORTAGE,Standard LTL,20350,15400,0.7568,23,POD+invoice+inspection,Shortage corroborated by consignee record,Long-term account
+HC-2024-0218,BlueLine Freight Systems,DAMAGE+DELAY,Standard LTL,16350,9375,0.5734,48,POD+invoice+photos,Direct cargo loss paid; commercial damages excluded,Evidence complete
+HC-2024-0219,BlueLine Freight Systems,SHORTAGE,Standard LTL,7050,6350,0.9007,48,POD+invoice+photos,Shortage corroborated by consignee record,
+HC-2024-0220,Western Parcel & LTL,SHORTAGE,Guaranteed Appointment,23300,21425,0.9195,49,POD+invoice+inspection,Direct cargo loss paid; commercial damages excluded,Long-term account
+HC-2024-0221,BlueLine Freight Systems,DAMAGE,Guaranteed Appointment,16200,13575,0.838,34,POD+invoice+photos,Packaging allocation negotiated,

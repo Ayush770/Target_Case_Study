@@ -1,0 +1,77 @@
+{
+  "pro_number": "BLF-77209115",
+  "bol_number": "BOL-884219",
+  "shipper": "Northstar Retail Equipment LLC",
+  "origin": {
+    "city": "Columbus",
+    "state": "OH"
+  },
+  "destination": {
+    "name": "MetroMart Stores - DC 18",
+    "city": "Dallas",
+    "state": "TX"
+  },
+  "service": {
+    "code": "LTL_STD",
+    "name": "Standard LTL",
+    "guaranteed": false
+  },
+  "shipment": {
+    "pickup_date": "2026-05-04",
+    "pieces_tendered": 60,
+    "piece_type": "carton",
+    "pallets": 4,
+    "weight_lb": 3600,
+    "freight_class": "125",
+    "declared_value_usd": null,
+    "freight_charge_usd": 1850.0
+  },
+  "customer_requested_delivery": "2026-05-08T17:00:00-05:00",
+  "carrier_estimated_delivery": "2026-05-08",
+  "events": [
+    {
+      "timestamp": "2026-05-04T15:18:00-04:00",
+      "code": "PICKED_UP",
+      "location": "Columbus, OH",
+      "pieces": 60
+    },
+    {
+      "timestamp": "2026-05-05T02:42:00-04:00",
+      "code": "DEPARTED_ORIGIN",
+      "location": "Columbus, OH"
+    },
+    {
+      "timestamp": "2026-05-07T22:10:00-05:00",
+      "code": "ARRIVED_TERMINAL",
+      "location": "Dallas, TX"
+    },
+    {
+      "timestamp": "2026-05-08T08:31:00-05:00",
+      "code": "EXCEPTION",
+      "location": "Dallas, TX",
+      "detail": "Terminal backlog - delivery appointment rolled"
+    },
+    {
+      "timestamp": "2026-05-11T07:12:00-05:00",
+      "code": "OUT_FOR_DELIVERY",
+      "location": "Dallas, TX"
+    },
+    {
+      "timestamp": "2026-05-11T16:40:00-05:00",
+      "code": "EXCEPTION",
+      "location": "Dallas, TX",
+      "detail": "Driver hours; freight returned to terminal"
+    },
+    {
+      "timestamp": "2026-05-12T10:42:00-05:00",
+      "code": "DELIVERED",
+      "location": "Dallas, TX",
+      "pieces": 59,
+      "source": "EDI 214"
+    }
+  ],
+  "exception_notes": [
+    "No guaranteed-service accessorial purchased",
+    "Final EDI piece count is carrier-reported and may not match consignee receiving count"
+  ]
+}

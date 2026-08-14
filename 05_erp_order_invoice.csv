@@ -1,0 +1,2 @@
+sales_order,invoice,customer,customer_po,sku,description,qty_ordered,qty_shipped,unit_price_usd,extended_value_usd,ship_date,promotion_launch_date,promotion_end_date,incoterm,warehouse
+SO-483921,INV-483921,MetroMart Stores,MM-PO-190733,NS-HS40,Handheld barcode scanner - rugged wireless,240,240,425.00,102000.00,2026-05-04,2026-05-10,2026-05-17,FOB Destination,CMH-02
