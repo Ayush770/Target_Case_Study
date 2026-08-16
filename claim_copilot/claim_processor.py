@@ -25,7 +25,7 @@ from contract_engine import (
 from historical_comparator import find_comparables
 
 
-ROOT = Path("..")
+ROOT = Path(__file__).resolve().parent.parent
 
 
 def load_json(filename: str):
@@ -65,16 +65,21 @@ def build_claim_evidence(claim_id: str) -> ClaimEvidence:
 
     # ---------------------------------
     # Inspection Evidence
-    # Scanned PDF -> AWS Textract
+    # Scanned PDF -> AWS Textract (with graceful fallback)
     # ---------------------------------
 
-    textract = TextractService()
+    try:
+        textract = TextractService()
 
-    inspection_text = textract.extract_text(
-        str(
-            ROOT / "09_damage_inspection_report_scanned.pdf"
+        inspection_text = textract.extract_text(
+            str(
+                ROOT / "09_damage_inspection_report_scanned.pdf"
+            )
         )
-    )
+    except Exception:
+        # Fall back to empty string when AWS credentials are unavailable
+        # or Textract is not reachable. Inspection facts will be absent.
+        inspection_text = ""
 
     inspection_facts = parse_inspection_report(
         inspection_text
