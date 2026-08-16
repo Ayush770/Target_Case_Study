@@ -1,9 +1,15 @@
 from pathlib import Path
 
-from pypdf import PdfReader
+try:
+    from pypdf import PdfReader
+except ImportError:
+    PdfReader = None
 
 
 def extract_pdf_text(file_path: str) -> str:
+    if PdfReader is None:
+        return ""
+
     path = Path(file_path)
 
     if not path.exists():

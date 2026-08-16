@@ -11,7 +11,8 @@ class ReconciliationFinding:
     status: str
     title: str
     detail: str
-    fact_ids: list[str]
+    action: str
+    facts: list[str]
 
 
 def _numeric_value(fact: EvidenceFact) -> Decimal:
@@ -51,7 +52,12 @@ def reconcile_delivery_counts(
             f"Carrier EDI reports {edi_value} pieces delivered, "
             f"while the signed POD records {pod_value} cartons received."
         ),
-        fact_ids=[
+        action=(
+            "Request carrier EDI scan detail and reconcile against "
+            "terminal/driver records. Retain the signed POD as the "
+            "preferred receipt evidence."
+        ),
+        facts=[
             edi_fact.id,
             pod_fact.id,
         ],
