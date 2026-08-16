@@ -43,3 +43,21 @@ class S3Service:
             key,
             local_path,
         )
+
+    def list_claim_documents(
+        self,
+        claim_id: str,
+    ) -> list[str]:
+        """
+        Return the S3 keys of all documents uploaded for a claim.
+        Keys follow the pattern: claims/{claim_id}/documents/{filename}
+        """
+        prefix = f"claims/{claim_id}/documents/"
+        response = self.client.list_objects_v2(
+            Bucket=BUCKET_NAME,
+            Prefix=prefix,
+        )
+        return [
+            obj["Key"]
+            for obj in response.get("Contents", [])
+        ]
