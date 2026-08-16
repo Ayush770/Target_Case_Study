@@ -36,20 +36,36 @@ http://127.0.0.1:8000
 
 ---
 
-## AWS Setup (optional — enables Textract OCR)
+## AWS Setup (optional — enables Textract OCR and S3 document upload)
+
+The application runs fully without AWS credentials using the built-in fixture files.
+To enable document upload and Textract OCR, configure credentials **before** starting the server.
 
 ```bash
-aws configure
-# or
-export AWS_PROFILE=<profile-name>
+# Option 1 — environment variables (recommended, bypasses any custom credential providers)
+export AWS_ACCESS_KEY_ID=your_access_key
+export AWS_SECRET_ACCESS_KEY=your_secret_key
 export AWS_REGION=ap-south-1
+export S3_BUCKET=candidate-pack-claims-dev-133715233089
+
+# Option 2 — copy and fill in .env.example
+cp claim_copilot/.env.example claim_copilot/.env
+# edit claim_copilot/.env, then:
+source claim_copilot/.env
+
+# Option 3 — re-authenticate if ~/.aws/config uses a login_session provider
+aws login   # or: aws sso login --profile candidate-pack
 ```
 
-Document uploads via the frontend require an S3 bucket. Set the bucket name:
-
+After setting credentials, verify with:
 ```bash
-export S3_BUCKET=<your-bucket-name>
+aws sts get-caller-identity
+aws s3 ls s3://candidate-pack-claims-dev-133715233089
 ```
+
+> **Note:** If `~/.aws/config` contains a `login_session` field (custom credential provider),
+> environment variables take priority and will bypass it. Set `AWS_ACCESS_KEY_ID` and
+> `AWS_SECRET_ACCESS_KEY` to use standard IAM credentials regardless of the config file.
 
 ---
 
