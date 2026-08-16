@@ -1,42 +1,210 @@
 <!doctype html>
 <html lang="en">
-  <head>
+
+<head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Freight Claim Copilot</title>
-    <link rel="stylesheet" href="/styles.css" />
-  </head>
-  <body>
-    <main class="shell">
-      <header class="topbar">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    />
+
+    <title>
+        Freight Claim Copilot
+    </title>
+
+    <!-- FastAPI static mount -->
+    <link
+        rel="stylesheet"
+        href="/static/styles.css"
+    />
+</head>
+
+
+<body>
+
+<main class="shell">
+
+
+    <!-- Header -->
+    <header class="topbar">
+
         <div>
-          <p class="eyebrow">Northstar Retail Equipment</p>
-          <h1>Freight Claim Copilot</h1>
+
+            <p class="eyebrow">
+                Northstar Retail Equipment
+            </p>
+
+
+            <h1>
+                Freight Claim Copilot
+            </h1>
+
         </div>
-        <div class="claim-chip"><span class="pulse"></span><span id="claim-status">Loading</span></div>
-      </header>
-      <section class="hero" aria-label="Claim summary">
+
+
+        <div class="claim-chip">
+
+            <span class="pulse"></span>
+
+            <span id="claim-status">
+                Loading
+            </span>
+
+        </div>
+
+
+    </header>
+
+
+
+
+    <!-- Claim Summary -->
+    <section
+        class="hero"
+        aria-label="Claim summary"
+    >
+
         <div>
-          <p class="eyebrow">Evidence-led negotiation workspace</p>
-          <h2 id="claim-title">FCL-2026-0147</h2>
-          <p id="claim-meta" class="muted"></p>
+
+            <p class="eyebrow">
+                Evidence-led negotiation workspace
+            </p>
+
+
+            <h2 id="claim-title">
+                FCL-2026-0147
+            </h2>
+
+
+            <p
+                id="claim-meta"
+                class="muted"
+            >
+            </p>
+
+
         </div>
+
+
+
         <div class="hero-statement">
-          <span>Decision posture</span>
-          <strong>Human review required</strong>
-          <p>Facts, rules, and recommendations remain separate.</p>
+
+            <span>
+                Decision posture
+            </span>
+
+
+            <strong>
+                Human review required
+            </strong>
+
+
+            <p>
+                Facts, rules, and recommendations remain separate.
+            </p>
+
+
         </div>
-      </section>
-      <nav aria-label="Claim workspace">
-        <button class="tab active" data-view="overview">Overview</button>
-        <button class="tab" data-view="evidence">Evidence & findings</button>
-        <button class="tab" data-view="position">Contract position</button>
-        <button class="tab" data-view="history">Similar claims</button>
-        <button class="tab" data-view="draft">Negotiation draft</button>
-      </nav>
-      <section id="content" aria-live="polite"></section>
-    </main>
-    <template id="empty"><div class="loading">Loading source-linked claim data…</div></template>
-    <script src="/app.js"></script>
-  </body>
+
+
+    </section>
+
+
+
+
+
+    <!-- Navigation -->
+    <nav aria-label="Claim workspace">
+
+        <button
+            class="tab active"
+            data-view="overview"
+        >
+            Overview
+        </button>
+
+
+        <button
+            class="tab"
+            data-view="evidence"
+        >
+            Evidence & findings
+        </button>
+
+
+        <button
+            class="tab"
+            data-view="position"
+        >
+            Contract position
+        </button>
+
+
+        <button
+            class="tab"
+            data-view="history"
+        >
+            Similar claims
+        </button>
+
+
+        <button
+            class="tab"
+            data-view="draft"
+        >
+            Negotiation draft
+        </button>
+
+
+    </nav>
+
+
+
+
+
+    <!-- Dynamic content injected by app.js -->
+
+    <section
+        id="content"
+        aria-live="polite"
+    >
+
+    </section>
+
+
+
+
+
+</main>
+
+
+
+
+<!-- Initial loading template -->
+
+<template id="empty">
+
+    <div class="loading">
+
+        Loading source-linked claim data...
+
+    </div>
+
+</template>
+
+
+
+
+
+<!-- FastAPI static JS -->
+
+<script
+    src="/static/app.js"
+>
+</script>
+
+
+</body>
+
 </html>

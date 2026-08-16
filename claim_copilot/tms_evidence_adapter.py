@@ -5,7 +5,7 @@ def parse_tms_delivery_fact(
     tms_data: dict,
 ):
     """
-    Converts TMS EDI delivery event
+    Converts carrier TMS / EDI delivery information
     into canonical EvidenceFact objects.
     """
 
@@ -32,7 +32,7 @@ def parse_tms_delivery_fact(
                             file="04_tms_shipment.json",
                             locator=(
                                 "DELIVERED event "
-                                "reported by EDI 214"
+                                "from EDI 214"
                             ),
                             source_role="carrier_edi",
                             confidence=0.95,
