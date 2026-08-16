@@ -1,6 +1,9 @@
 import re
 
-from evidence import EvidenceFact, EvidenceAnchor
+try:
+    from .evidence import EvidenceFact, EvidenceAnchor
+except ImportError:  # pragma: no cover - script-style execution fallback
+    from evidence import EvidenceFact, EvidenceAnchor
 
 
 SOURCE_FILE = "09_damage_inspection_report_scanned.pdf"

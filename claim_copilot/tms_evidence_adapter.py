@@ -1,4 +1,7 @@
-from evidence import EvidenceFact, EvidenceAnchor
+try:
+    from .evidence import EvidenceFact, EvidenceAnchor
+except ImportError:  # pragma: no cover - script-style execution fallback
+    from evidence import EvidenceFact, EvidenceAnchor
 
 
 def parse_tms_delivery_fact(

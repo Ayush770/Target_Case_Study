@@ -1,7 +1,10 @@
 from dataclasses import dataclass, field
 from typing import List
 
-from evidence import EvidenceFact
+try:
+    from .evidence import EvidenceFact
+except ImportError:  # pragma: no cover - script-style execution fallback
+    from evidence import EvidenceFact
 
 
 @dataclass

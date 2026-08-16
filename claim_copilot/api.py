@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from fastapi import (
     FastAPI,
     File,
@@ -8,8 +10,12 @@ from fastapi import (
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
-from s3_service import S3Service
-from claim_processor import process_claim
+try:
+    from .s3_service import S3Service
+    from .claim_processor import process_claim
+except ImportError:  # pragma: no cover - script-style execution fallback
+    from s3_service import S3Service
+    from claim_processor import process_claim
 
 from dataclasses import (
     is_dataclass,
@@ -18,6 +24,9 @@ from dataclasses import (
 
 import tempfile
 import os
+
+APP_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = APP_DIR.parent
 
 
 # =====================================================
@@ -45,7 +54,7 @@ s3_service = S3Service()
 
 app.mount(
     "/static",
-    StaticFiles(directory="static"),
+    StaticFiles(directory=str(APP_DIR / "static")),
     name="static",
 )
 
@@ -55,7 +64,7 @@ app.mount(
 def home():
 
     return FileResponse(
-        "static/index.html"
+        str(APP_DIR / "static" / "index.html")
     )
 
 
@@ -85,7 +94,7 @@ def serialize_response(obj):
         return None
 
 
-    if is_dataclass(obj):
+    if is_dataclass(obj) and not isinstance(obj, type):
 
         return {
             key: serialize_response(value)
@@ -234,10 +243,28 @@ def build_frontend_claim_response(
         result
     )
 
+    if not isinstance(data, dict):
+        data = {}
+
 
     contract_positions = data.get(
         "contract_position",
         []
+    )
+
+    if not isinstance(contract_positions, list):
+        contract_positions = []
+
+    evidence = data.get(
+        "evidence",
+        {}
+    )
+
+    if not isinstance(evidence, dict):
+        evidence = {}
+
+    reconciliation = data.get(
+        "reconciliation"
     )
 
 
@@ -286,10 +313,7 @@ def build_frontend_claim_response(
 
         "facts":
 
-            data.get(
-                "evidence",
-                {}
-            ).get(
+            evidence.get(
                 "facts",
                 []
             ),
@@ -303,12 +327,10 @@ def build_frontend_claim_response(
         "findings":
 
             [
-                data["reconciliation"]
+                reconciliation
             ]
 
-            if data.get(
-                "reconciliation"
-            )
+            if reconciliation
 
             else [],
 

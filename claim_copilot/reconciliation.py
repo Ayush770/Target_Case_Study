@@ -1,7 +1,10 @@
 from dataclasses import dataclass, asdict
 from decimal import Decimal, InvalidOperation
 
-from evidence import EvidenceFact
+try:
+    from .evidence import EvidenceFact
+except ImportError:  # pragma: no cover - script-style execution fallback
+    from evidence import EvidenceFact
 
 
 @dataclass(frozen=True)

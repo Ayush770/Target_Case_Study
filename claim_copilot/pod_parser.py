@@ -1,6 +1,9 @@
 import re
 
-from evidence import create_fact
+try:
+    from .evidence import create_fact
+except ImportError:  # pragma: no cover - script-style execution fallback
+    from evidence import create_fact
 
 
 def parse_pod(text: str):
