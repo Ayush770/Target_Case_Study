@@ -142,17 +142,31 @@ function bindUploadHandlers() {
     analyzeBtn.textContent = "Analyzing…";
     output.innerHTML = "";
     try {
-      const res  = await fetch(`/claims/${encodeURIComponent(claimId())}/analyze`, { method: "POST" });
+      const cid  = claimId();
+      const res  = await fetch(`/claims/${encodeURIComponent(cid)}/analyze`, { method: "POST" });
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || res.statusText);
       const factCount = data?.evidence?.facts?.length ?? 0;
-      const findCount = data?.reconciliation ? 1 : 0;
       output.innerHTML = `<div class="analyze-result">
         ✓ Analysis complete — ${factCount} evidence facts extracted,
         ${data?.contract_position?.length ?? 0} contract positions evaluated,
         ${data?.historical_comparables?.length ?? 0} historical comparables found.
-        Switch to the <strong>Overview</strong> tab to review results.
+        <br><br>Loading results…
       </div>`;
+
+      // Reload claim workspace from the pipeline result for this claim_id
+      const claimRes  = await fetch(`/api/claim/${encodeURIComponent(cid)}`);
+      const claimJson = await claimRes.json();
+      if (claimRes.ok) {
+        claimData = claimJson;
+        const titleEl  = document.getElementById("claim-title");
+        const metaEl   = document.getElementById("claim-meta");
+        const statusEl = document.getElementById("claim-status");
+        if (titleEl)  titleEl.textContent  = claimData.claim?.id     || cid;
+        if (metaEl)   metaEl.textContent   = `${claimData.claim?.carrier || ""} · ${claimData.claim?.owner || ""}`;
+        if (statusEl) statusEl.textContent = claimData.claim?.status || "ANALYZED";
+        render("overview");
+      }
     } catch (err) {
       output.innerHTML = `<div class="analyze-error">Analysis failed: ${esc(err.message)}</div>`;
     }

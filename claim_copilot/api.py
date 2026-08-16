@@ -159,7 +159,11 @@ async def upload_document(
 def analyze_claim(claim_id: str) -> Any:
     try:
         result = process_claim(claim_id)
-        return serialize_response(result)
+        serialized = serialize_response(result)
+        # Include claim_id explicitly so the frontend can route to
+        # GET /api/claim/{claim_id} after analysis completes.
+        serialized["claim_id"] = claim_id
+        return serialized
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
 
@@ -185,81 +189,103 @@ def _map_contract_position(pos: dict[str, Any]) -> dict[str, Any]:
 
 def build_frontend_claim_response(claim_id: str) -> dict[str, Any]:
     # ------------------------------------------------------------------
-    # Primary data: build_case() computes all monetary values, the
-    # timeline, findings, and position formulas from the source files.
-    # We never override these with hardcoded strings.
+    # Run the live pipeline first.  For the demo fixture claim this is
+    # supplemented by build_case() (which has richer formulas/timeline).
+    # For any other claim_id the pipeline result IS the response — we do
+    # not fall back to the fixture data.
     # ------------------------------------------------------------------
-    case = build_case()
+    IS_FIXTURE = claim_id in ("CLAIM-001", "FCL-2026-0147")
 
-    # ------------------------------------------------------------------
-    # Overlay: run the live pipeline so reconciliation and contract
-    # positions reflect real parsed data when available.
-    # Falls back to the fixture silently (e.g. no AWS creds for Textract).
-    # ------------------------------------------------------------------
     try:
-        pipeline = process_claim(claim_id)
+        pipeline      = process_claim(claim_id)
         pipeline_data = serialize_response(pipeline)
-
-        # Use pipeline facts when the pipeline produced some
-        pipeline_facts = pipeline_data.get("evidence", {}).get("facts", [])
-        facts = pipeline_facts if pipeline_facts else case["facts"]
-
-        # Prepend the live reconciliation finding when it fired,
-        # then append fixture findings that aren't already present.
-        live_findings: list[dict[str, Any]] = []
-        if pipeline_data.get("reconciliation"):
-            live_findings = [pipeline_data["reconciliation"]]
-        live_ids = {f["id"] for f in live_findings}
-        merged_findings = live_findings + [
-            f for f in case["findings"] if f["id"] not in live_ids
-        ]
-
-        # Use pipeline contract positions when populated
-        pipeline_positions = pipeline_data.get("contract_position", [])
-
-        # Use pipeline comparators when populated
-        comparators = pipeline_data.get("historical_comparables", [])
-        if not comparators:
-            comparators = case.get("comparators", [])
-
+        pipeline_ok   = True
     except Exception:
-        # Pipeline unavailable — use fixture throughout
-        facts            = case["facts"]
-        merged_findings  = case["findings"]
-        pipeline_positions = []
-        comparators      = case.get("comparators", [])
+        pipeline_data = {}
+        pipeline_ok   = False
+
+    # Only load the fixture case when we're serving the demo claim
+    if IS_FIXTURE:
+        try:
+            case = build_case()
+        except Exception:
+            case = {}
+    else:
+        case = {}
 
     # ------------------------------------------------------------------
-    # Position — prefer pipeline positions (have id/clause/rationale),
-    # fall back to fixture positions (have formula).
-    # All monetary values come from computation, never from literals.
+    # Facts — prefer pipeline; fall back to fixture for demo claim only
     # ------------------------------------------------------------------
+    pipeline_facts = pipeline_data.get("evidence", {}).get("facts", []) if pipeline_ok else []
+    facts = pipeline_facts or case.get("facts", [])
+
+    # ------------------------------------------------------------------
+    # Findings — live reconciliation first, then fixture findings
+    # ------------------------------------------------------------------
+    live_findings: list[dict[str, Any]] = []
+    if pipeline_ok and pipeline_data.get("reconciliation"):
+        live_findings = [pipeline_data["reconciliation"]]
+    live_ids = {f["id"] for f in live_findings}
+    fixture_findings = case.get("findings", []) if IS_FIXTURE else []
+    merged_findings  = live_findings + [f for f in fixture_findings if f["id"] not in live_ids]
+
+    # ------------------------------------------------------------------
+    # Contract positions — pipeline when present, fixture as fallback
+    # ------------------------------------------------------------------
+    pipeline_positions = pipeline_data.get("contract_position", []) if pipeline_ok else []
+
     def _pos(index: int) -> dict[str, Any]:
         if pipeline_positions and len(pipeline_positions) > index:
             return _map_contract_position(pipeline_positions[index])
         return {}
 
-    fixture_pos = case["position"]
+    fixture_pos = case.get("position", {})
 
     position = {
-        "direct_cargo":   fixture_pos["direct_cargo"],
+        "direct_cargo":   _pos(0) or fixture_pos.get("direct_cargo", {}),
         "cargo_cap":      _pos(0) or fixture_pos.get("cargo_cap", {}),
         "inspection":     _pos(1) or fixture_pos.get("inspection", {}),
         "repack":         _pos(2) or fixture_pos.get("repack", {}),
         "delay_markdown": _pos(3) or fixture_pos.get("delay_markdown", {}),
-        # freight_refund amount comes from TMS freight_charge_usd via build_case()
         "freight_refund": fixture_pos.get("freight_refund", {}),
     }
+    # For the fixture claim, direct_cargo is separate from cargo_cap
+    if IS_FIXTURE and fixture_pos.get("direct_cargo"):
+        position["direct_cargo"] = fixture_pos["direct_cargo"]
+
+    # ------------------------------------------------------------------
+    # Comparators
+    # ------------------------------------------------------------------
+    comparators = (
+        pipeline_data.get("historical_comparables", [])
+        if pipeline_ok
+        else case.get("comparators", [])
+    )
+
+    # ------------------------------------------------------------------
+    # Claim header block
+    # For the fixture claim use build_case() computed values (they include
+    # direct_cargo formula, gap, offer parsed from email etc.).
+    # For uploaded claims use the pipeline claim_id and fixture metadata
+    # as a placeholder — the analysis result is what matters.
+    # ------------------------------------------------------------------
+    claim_block = case.get("claim", {
+        "id":                claim_id,
+        "carrier":           "—",
+        "owner":             "—",
+        "status":            "ANALYZED",
+        "demand":            "—",
+        "offer":             "—",
+        "direct_cargo":      "—",
+        "gap_to_direct_cargo": "—",
+    })
 
     return {
-        # claim block: id, carrier, owner, status, demand, offer,
-        # direct_cargo, gap_to_direct_cargo — all from build_case()
-        "claim":       case["claim"],
+        "claim":       claim_block,
         "facts":       facts,
         "findings":    merged_findings,
         "position":    position,
         "comparators": comparators,
-        # timeline: 6 operational events from build_case()
         "timeline":    case.get("timeline", []),
     }
 
