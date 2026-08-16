@@ -185,31 +185,30 @@ def _map_contract_position(pos: dict[str, Any]) -> dict[str, Any]:
 
 def build_frontend_claim_response(claim_id: str) -> dict[str, Any]:
     # ------------------------------------------------------------------
-    # Primary data: use app.py's build_case() which has the full
-    # evidence fixture (timeline, richer findings, position formulas).
+    # Primary data: build_case() computes all monetary values, the
+    # timeline, findings, and position formulas from the source files.
+    # We never override these with hardcoded strings.
     # ------------------------------------------------------------------
     case = build_case()
 
     # ------------------------------------------------------------------
-    # Overlay reconciliation from the live pipeline so the COUNT_MISMATCH
-    # finding reflects real data rather than the fixture when available.
+    # Overlay: run the live pipeline so reconciliation and contract
+    # positions reflect real parsed data when available.
+    # Falls back to the fixture silently (e.g. no AWS creds for Textract).
     # ------------------------------------------------------------------
     try:
         pipeline = process_claim(claim_id)
         pipeline_data = serialize_response(pipeline)
 
-        # Merge pipeline facts on top of the fixture facts when present
-        pipeline_facts = (
-            pipeline_data.get("evidence", {}).get("facts", [])
-        )
+        # Use pipeline facts when the pipeline produced some
+        pipeline_facts = pipeline_data.get("evidence", {}).get("facts", [])
         facts = pipeline_facts if pipeline_facts else case["facts"]
 
-        # Prepend the live reconciliation finding if it fired
-        live_findings = []
+        # Prepend the live reconciliation finding when it fired,
+        # then append fixture findings that aren't already present.
+        live_findings: list[dict[str, Any]] = []
         if pipeline_data.get("reconciliation"):
             live_findings = [pipeline_data["reconciliation"]]
-
-        # Combine: live reconciliation first, then fixture findings
         live_ids = {f["id"] for f in live_findings}
         merged_findings = live_findings + [
             f for f in case["findings"] if f["id"] not in live_ids
@@ -217,7 +216,6 @@ def build_frontend_claim_response(claim_id: str) -> dict[str, Any]:
 
         # Use pipeline contract positions when populated
         pipeline_positions = pipeline_data.get("contract_position", [])
-        contract_positions = pipeline_positions if pipeline_positions else []
 
         # Use pipeline comparators when populated
         comparators = pipeline_data.get("historical_comparables", [])
@@ -225,38 +223,43 @@ def build_frontend_claim_response(claim_id: str) -> dict[str, Any]:
             comparators = case.get("comparators", [])
 
     except Exception:
-        # Pipeline failed (e.g. no AWS creds) — fall back entirely to
-        # the app.py fixture so the UI still renders.
-        facts = case["facts"]
-        merged_findings = case["findings"]
-        contract_positions = []
-        comparators = case.get("comparators", [])
+        # Pipeline unavailable — use fixture throughout
+        facts            = case["facts"]
+        merged_findings  = case["findings"]
+        pipeline_positions = []
+        comparators      = case.get("comparators", [])
 
     # ------------------------------------------------------------------
-    # Position — prefer pipeline positions, fall back to fixture
+    # Position — prefer pipeline positions (have id/clause/rationale),
+    # fall back to fixture positions (have formula).
+    # All monetary values come from computation, never from literals.
     # ------------------------------------------------------------------
     def _pos(index: int) -> dict[str, Any]:
-        if contract_positions and len(contract_positions) > index:
-            return _map_contract_position(contract_positions[index])
+        if pipeline_positions and len(pipeline_positions) > index:
+            return _map_contract_position(pipeline_positions[index])
         return {}
 
     fixture_pos = case["position"]
 
     position = {
-        "direct_cargo":    fixture_pos.get("direct_cargo", {}),
-        "cargo_cap":       _pos(0) or fixture_pos.get("cargo_cap", {}),
-        "inspection":      _pos(1) or fixture_pos.get("inspection", {}),
-        "repack":          _pos(2) or fixture_pos.get("repack", {}),
-        "delay_markdown":  _pos(3) or fixture_pos.get("delay_markdown", {}),
-        "freight_refund":  fixture_pos.get("freight_refund", {}),
+        "direct_cargo":   fixture_pos["direct_cargo"],
+        "cargo_cap":      _pos(0) or fixture_pos.get("cargo_cap", {}),
+        "inspection":     _pos(1) or fixture_pos.get("inspection", {}),
+        "repack":         _pos(2) or fixture_pos.get("repack", {}),
+        "delay_markdown": _pos(3) or fixture_pos.get("delay_markdown", {}),
+        # freight_refund amount comes from TMS freight_charge_usd via build_case()
+        "freight_refund": fixture_pos.get("freight_refund", {}),
     }
 
     return {
+        # claim block: id, carrier, owner, status, demand, offer,
+        # direct_cargo, gap_to_direct_cargo — all from build_case()
         "claim":       case["claim"],
         "facts":       facts,
         "findings":    merged_findings,
         "position":    position,
         "comparators": comparators,
+        # timeline: 6 operational events from build_case()
         "timeline":    case.get("timeline", []),
     }
 
