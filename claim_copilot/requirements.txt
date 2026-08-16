@@ -1,0 +1,5 @@
+fastapi==0.141.1
+uvicorn==0.52.3
+pypdf==6.16.1
+boto3==1.43.72
+python-multipart==0.0.32
