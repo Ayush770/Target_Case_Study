@@ -119,7 +119,9 @@ function bindUploadHandlers() {
         if (statusEl) { statusEl.textContent = "Uploaded ✓"; statusEl.className = "upload-item-status success"; }
       } catch (err) {
         if (statusEl) { statusEl.textContent = "Failed"; statusEl.className = "upload-item-status error"; }
+        // Show the real error from the API in the console and in the UI
         console.warn("Upload error:", err.message);
+        output.innerHTML = `<div class="analyze-error"><strong>Upload failed:</strong> ${esc(err.message)}</div>`;
       }
     }
     analyzeBtn.disabled = false;

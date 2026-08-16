@@ -1,5 +1,6 @@
 import os
 import boto3
+from botocore.exceptions import BotoCoreError, ClientError
 from pathlib import Path
 
 BUCKET_NAME = os.getenv(
@@ -12,6 +13,8 @@ AWS_REGION = os.getenv("AWS_REGION", "ap-south-1")
 
 class S3Service:
     def __init__(self):
+        # Build client — raises immediately if no valid credentials exist.
+        # Callers should catch BotoCoreError / ClientError.
         self.client = boto3.client(
             "s3",
             region_name=AWS_REGION,

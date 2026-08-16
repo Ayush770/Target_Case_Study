@@ -16,9 +16,10 @@ venv/
 env/
 ENV/
 
-# Environment / secrets
+# Environment / secrets — never commit real credentials
 .env
-.env.*
+.env.local
+.env.*.local
 *.env
 
 # macOS

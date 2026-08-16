@@ -95,22 +95,15 @@ def serialize_response(obj: Any) -> Any:
 
 
 # =====================================================
-# Lazy S3 service
+# S3 service factory
 #
-# Instantiated on first use so the app starts cleanly
-# without AWS credentials. Endpoints that need S3 will
-# fail at call time with a clear error instead of
-# crashing the whole server at startup.
+# A new client is created per-request so that credential
+# refreshes (e.g. re-running `aws login` or setting env
+# vars) take effect without restarting the server.
 # =====================================================
 
-_s3_service: S3Service | None = None
-
-
 def get_s3_service() -> S3Service:
-    global _s3_service
-    if _s3_service is None:
-        _s3_service = S3Service()
-    return _s3_service
+    return S3Service()
 
 
 # =====================================================
@@ -136,18 +129,26 @@ async def upload_document(
             filename=file.filename or "uploaded_file",
         )
     except Exception as exc:
-        raise HTTPException(
-            status_code=502,
-            detail=f"S3 upload failed: {exc}",
-        )
+        # Surface the real AWS error so the frontend shows an actionable
+        # message rather than a generic "Failed".
+        err_msg = str(exc)
+        # Make the most common error (expired session) easy to understand
+        if "reauthenticate" in err_msg or "login session" in err_msg.lower():
+            err_msg = (
+                "AWS credentials are expired or missing. "
+                "Set AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and AWS_REGION "
+                "environment variables, then restart the server. "
+                f"Original error: {exc}"
+            )
+        raise HTTPException(status_code=502, detail=err_msg)
     finally:
         os.unlink(tmp_path)
 
     return {
         "claim_id": claim_id,
         "filename": file.filename or "uploaded_file",
-        "s3_key": s3_key,
-        "status": "uploaded",
+        "s3_key":   s3_key,
+        "status":   "uploaded",
     }
 
 
