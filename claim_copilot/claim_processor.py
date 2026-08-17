@@ -344,6 +344,7 @@ def process_claim(claim_id: str):
 
     return {
         "claim_id":              claim_id,
+        "claim_snapshot":        claim_snapshot,
         "evidence":              evidence,
         "reconciliation":        reconciliation,
         "contract_position":     contract_positions,

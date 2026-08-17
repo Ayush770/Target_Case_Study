@@ -265,21 +265,41 @@ def build_frontend_claim_response(claim_id: str) -> dict[str, Any]:
 
     # ------------------------------------------------------------------
     # Claim header block
-    # For the fixture claim use build_case() computed values (they include
-    # direct_cargo formula, gap, offer parsed from email etc.).
-    # For uploaded claims use the pipeline claim_id and fixture metadata
-    # as a placeholder — the analysis result is what matters.
+    # Use pipeline snapshot when available (reflects uploaded files).
+    # Fall back to build_case() for the fixture claim when pipeline
+    # did not produce a snapshot (e.g. pipeline failed entirely).
     # ------------------------------------------------------------------
-    claim_block = case.get("claim", {
-        "id":                claim_id,
-        "carrier":           "—",
-        "owner":             "—",
-        "status":            "ANALYZED",
-        "demand":            "—",
-        "offer":             "—",
-        "direct_cargo":      "—",
-        "gap_to_direct_cargo": "—",
-    })
+    pipeline_snapshot = pipeline_data.get("claim_snapshot", {}) if pipeline_ok else {}
+
+    if pipeline_snapshot:
+        # Pipeline ran and returned snapshot data — use it directly.
+        # build_case() provides the carrier offer (parsed from email)
+        # and the direct_cargo calculation; merge them.
+        fixture_claim = case.get("claim", {})
+        claim_block = {
+            "id":                  pipeline_snapshot.get("claim_id", claim_id),
+            "carrier":             pipeline_snapshot.get("carrier", fixture_claim.get("carrier", "—")),
+            "owner":               pipeline_snapshot.get("owner", fixture_claim.get("owner", "—")),
+            "status":              pipeline_snapshot.get("status", fixture_claim.get("status", "ANALYZED")),
+            "demand":              f"${float(pipeline_snapshot.get('claim_amount_usd', 0)):,.2f}",
+            # offer comes from build_case() (parsed from email) — keep it when available
+            "offer":               fixture_claim.get("offer", "—"),
+            # direct_cargo and gap come from build_case() calculation when fixture,
+            # or remain as computed by the pipeline position
+            "direct_cargo":        fixture_claim.get("direct_cargo", "—"),
+            "gap_to_direct_cargo": fixture_claim.get("gap_to_direct_cargo", "—"),
+        }
+    else:
+        claim_block = case.get("claim", {
+            "id":                claim_id,
+            "carrier":           "—",
+            "owner":             "—",
+            "status":            "ANALYZED",
+            "demand":            "—",
+            "offer":             "—",
+            "direct_cargo":      "—",
+            "gap_to_direct_cargo": "—",
+        })
 
     return {
         "claim":       claim_block,
