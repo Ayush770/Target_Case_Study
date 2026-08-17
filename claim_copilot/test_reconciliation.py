@@ -53,7 +53,7 @@ print(result)
 assert result["id"] == "COUNT_MISMATCH"
 assert result["severity"] == "high"
 assert result["status"] == "open"
-assert "fact.edi_delivered_pieces" in result["fact_ids"]
-assert "fact.pod_received_cartons" in result["fact_ids"]
+assert "fact.edi_delivered_pieces" in result["facts"]
+assert "fact.pod_received_cartons" in result["facts"]
 
 print("Reconciliation test passed.")
