@@ -24,8 +24,13 @@ ENV/
 
 # macOS
 .DS_Store
+**/.DS_Store
 .AppleDouble
 .LSOverride
+
+# Editor backup files
+*.save
+*.bak
 
 # IDE
 .vscode/
