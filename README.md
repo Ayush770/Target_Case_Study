@@ -4,6 +4,17 @@ An evidence-led freight claim analysis tool for claim **FCL-2026-0147**. Extract
 
 ---
 
+## Supporting Documentation
+
+| Document | Path |
+|---|---|
+| Full architecture and design | [`docs/architecture/SYSTEM_DESIGN.md`](docs/architecture/SYSTEM_DESIGN.md) |
+| Technical review and gap analysis | [`docs/architecture/Troubleshoot.md`](docs/architecture/Troubleshoot.md) |
+| Original exercise brief (Target-provided) | [`docs/exercise/exercise_brief.md`](docs/exercise/exercise_brief.md) |
+| Original problem statement | [`docs/exercise/problem_statement.md`](docs/exercise/problem_statement.md) |
+
+---
+
 ## Quick Start
 
 ```bash
@@ -269,7 +280,7 @@ Target_Case_Study/
 ├── 08_proof_of_delivery.pdf      Signed POD
 ├── 09_damage_inspection_report_scanned.pdf
 ├── 12_historical_claims.csv      30 prior claims
-├── SYSTEM_DESIGN.md              Full architecture design document
+├── SYSTEM_DESIGN.md → docs/architecture/SYSTEM_DESIGN.md
 └── claim_copilot/
     ├── api.py                    FastAPI server (entry point)
     ├── app.py                    Fixture builder + draft generator
