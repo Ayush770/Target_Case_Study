@@ -1,3 +1,8 @@
+> **Superseded by the root [`README.md`](../README.md)**, which is the
+> canonical project README (Quick Start, AWS config, architecture, API,
+> testing, demo, limitations). Everything below is retained for reference
+> only and will be retired once fully consolidated.
+
 # Freight Claim Evidence Copilot
 
 A source-linked evidence and negotiation workspace for claim `FCL-2026-0147`.

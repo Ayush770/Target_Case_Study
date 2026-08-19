@@ -2,6 +2,18 @@
 
 An evidence-led freight claim analysis tool for claim **FCL-2026-0147**. Extracts structured facts from uploaded claim documents stored in AWS S3, reconciles conflicting evidence, applies deterministic contract rules, retrieves comparable historical claims, and generates an approval-required negotiation draft — all traceable to source files.
 
+**Repo map**
+
+| Path | What it is |
+|---|---|
+| `README.md` (this file) | Canonical entry point — setup, architecture, API, demo, testing |
+| `00_README.md` | Original Target assignment brief (input, not this document) |
+| `claim_copilot/` | Implementation |
+| `01`–`15_data_dictionary.md` | Runtime case/input data + data dictionary |
+| `docs/architecture/` | Target-state / future architecture |
+| `docs/review/` | Troubleshooting and review notes |
+| `docs/assignment/`, `docs/data/` | Pointers back to `00_README.md` and `15_data_dictionary.md` |
+
 ---
 
 ## Quick Start

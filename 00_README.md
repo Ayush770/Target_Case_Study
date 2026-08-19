@@ -1,3 +1,8 @@
+> **Note:** This is the original exercise brief as provided by Target — the
+> problem statement this repository was built against, not the project
+> README. For the implemented solution, setup, and architecture, see the
+> canonical root [`README.md`](README.md).
+
 # Senior AI Engineer Exercise - Freight Claim Copilot
 
 ## Background
