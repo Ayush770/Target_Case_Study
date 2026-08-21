@@ -34,6 +34,14 @@ export S3_BUCKET=candidate-pack-claims-dev-133715233089
 
 Copy `.env.example` → `.env` and `source .env` as an alternative.
 
+**Required IAM permissions** (full policy in [`docs/iam_policy.json`](docs/iam_policy.json)):
+
+| Service | Actions | Used for |
+|---|---|---|
+| S3 | `PutObject`, `GetObject`, `ListBucket` | Document upload / download |
+| Textract | `DetectDocumentText` | Scanned PDF OCR |
+| Bedrock | `InvokeModel` | Negotiation draft generation |
+
 If `~/.aws/config` uses a `login_session` provider: `aws login` then restart the server.
 
 ---
