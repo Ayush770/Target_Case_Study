@@ -29,7 +29,10 @@ GENAI_ENABLED: bool = os.getenv("GENAI_ENABLED", "false").lower() == "true"
 AWS_REGION: str = os.getenv("AWS_REGION", "ap-south-1")
 
 # Require an explicit model ID when GenAI is enabled; no hidden default.
-BEDROCK_MODEL_ID: str | None = os.getenv("BEDROCK_MODEL_ID")
+BEDROCK_MODEL_ID: str | None = os.getenv(
+    "BEDROCK_MODEL_ID",
+    "mistral.mistral-large-3-675b-instruct",   # default; override via env var
+)
 
 # ---------------------------------------------------------------------------
 # Expected output schema
@@ -207,13 +210,29 @@ def _call_bedrock(packet: dict[str, Any]) -> dict[str, Any]:
     client = boto3.client("bedrock-runtime", region_name=AWS_REGION)
 
     user_message = _build_user_message(packet)
+    model_id = BEDROCK_MODEL_ID or ""
 
-    body = json.dumps({
-        "anthropic_version": "bedrock-2023-05-31",
-        "max_tokens": 1024,
-        "system": _SYSTEM_PROMPT,
-        "messages": [{"role": "user", "content": user_message}],
-    })
+    if "titan" in model_id.lower():
+        body = json.dumps({
+            "inputText": _SYSTEM_PROMPT + "\n\n" + user_message,
+            "textGenerationConfig": {"maxTokenCount": 1024, "temperature": 0.3},
+        })
+    elif "anthropic" in model_id.lower() or "claude" in model_id.lower():
+        body = json.dumps({
+            "anthropic_version": "bedrock-2023-05-31",
+            "max_tokens": 1024,
+            "system": _SYSTEM_PROMPT,
+            "messages": [{"role": "user", "content": user_message}],
+        })
+    else:
+        # OpenAI-compatible format (Mistral, etc.)
+        body = json.dumps({
+            "messages": [
+                {"role": "system", "content": _SYSTEM_PROMPT},
+                {"role": "user", "content": user_message},
+            ],
+            "max_tokens": 2048,
+        })
 
     response = client.invoke_model(
         modelId=BEDROCK_MODEL_ID,
@@ -223,7 +242,14 @@ def _call_bedrock(packet: dict[str, Any]) -> dict[str, Any]:
     )
 
     response_body = json.loads(response["body"].read())
-    raw_text: str = response_body["content"][0]["text"]
+
+    if "titan" in model_id.lower():
+        raw_text: str = response_body["results"][0]["outputText"]
+    elif "choices" in response_body:
+        # OpenAI-compatible format (Mistral, etc.)
+        raw_text = response_body["choices"][0]["message"]["content"]
+    else:
+        raw_text = response_body["content"][0]["text"]
 
     # Strip markdown code fences if the model wraps output
     stripped = raw_text.strip()
@@ -232,6 +258,12 @@ def _call_bedrock(packet: dict[str, Any]) -> dict[str, Any]:
         if stripped.startswith("json"):
             stripped = stripped[4:]
         stripped = stripped.strip()
+
+    # Replace literal control characters that break json.loads
+    stripped = stripped.replace("\r\n", "\\n").replace("\r", "\\n")
+    # Only replace bare newlines that are inside JSON string values
+    import re as _re
+    stripped = _re.sub(r'(?<!\\)\n', '\\n', stripped)
 
     draft = json.loads(stripped)
 
