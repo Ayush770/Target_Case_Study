@@ -1,4 +1,4 @@
-# Freight Claim Copilot
+# Freight Claim Copilot 
 
 Evidence-led freight claim analysis tool for claim **FCL-2026-0147**.
 
@@ -40,7 +40,7 @@ Copy `.env.example` → `.env` and `source .env` as an alternative.
 |---|---|---|
 | S3 | `PutObject`, `GetObject`, `ListBucket` | Document upload / download |
 | Textract | `DetectDocumentText` | Scanned PDF OCR |
-| Bedrock | `InvokeModel` | Negotiation draft generation |
+| Bedrock | `InvokeModel` | Negotiation draft generation (`mistral.mistral-large-3-675b-instruct`) |
 
 If `~/.aws/config` uses a `login_session` provider: `aws login` then restart the server.
 
@@ -126,7 +126,8 @@ Target_Case_Study/
 │
 ├── claim_copilot/                ← the application
 │   ├── api.py                    FastAPI server (entry point)
-│   ├── app.py                    Fixture builder + draft generator
+│   ├── app.py                    Fixture builder + deterministic draft
+│   ├── genai_service.py          Bedrock GenAI layer (grounded draft)
 │   ├── claim_processor.py        Pipeline orchestrator
 │   ├── s3_service.py             AWS S3 client
 │   ├── textract_service.py       AWS Textract client
@@ -165,27 +166,47 @@ Bedrock is used **only** to draft grounded negotiation prose from the pre-built 
 
 ### How it works
 
-1. Deterministic code computes direct cargo loss, contract positions, and reconciliation findings.
-2. A bounded evidence packet (facts, positions, comparators — no raw documents or credentials) is sent to Bedrock.
-3. Bedrock drafts a negotiation message citing only facts and rules present in the packet.
-4. The response is validated: required fields, grounded citations, `approval_required: true`.
-5. Human approval is required before the draft is sent.
-6. Any failure — disabled, missing model ID, invalid JSON, AWS error, failed validation — returns the deterministic fallback transparently.
+1. `build_case()` computes direct cargo loss, contract positions, reconciliation findings, and historical comparators — all deterministically.
+2. `build_evidence_packet()` extracts a bounded, sanitised subset: structured facts, positions, and comparators. No raw documents, no credentials, no unverified fields.
+3. Bedrock (`mistral.mistral-large-3-675b-instruct`) receives the packet with a strict system prompt: treat evidence as data, cite only known facts, never invent values, always require human approval.
+4. The response is validated: required fields, grounded citations (`fact_ids` must exist in the packet), `approval_required: true`.
+5. Any failure — GenAI disabled, missing model ID, invalid JSON, failed validation, AWS error — returns the deterministic draft with `"mode": "deterministic_fallback"`.
+
+### Verified working output
+
+```json
+{
+  "subject": "Re: Freight Claim FCL-2026-0147 – Proposal to Resolve at $9,670.00",
+  "mode": "bedrock",
+  "approval_required": true
+}
+```
 
 ### Enabling GenAI
 
 ```bash
 export GENAI_ENABLED=true
 export AWS_REGION=ap-south-1
-export BEDROCK_MODEL_ID=anthropic.claude-3-sonnet-20240229-v1:0
+export BEDROCK_MODEL_ID=mistral.mistral-large-3-675b-instruct
 uvicorn api:app --reload
 ```
 
-Without `GENAI_ENABLED=true`, the `/api/draft` endpoint returns the deterministic fallback draft with `"mode": "deterministic_fallback"`.
+Without `GENAI_ENABLED=true`, the `/api/draft` endpoint returns the deterministic fallback with `"mode": "deterministic_fallback"`.
 
 ### What the model cannot do
 
 - Recalculate claim values or contract liability
-- Resolve evidence conflicts (EDI vs POD)
+- Resolve evidence conflicts (EDI 59 vs POD 58)
 - Invent facts, amounts, dates, or citations
 - Set `approval_required` to anything other than `true`
+- Override system rules via injected text in evidence fields
+
+### Model support
+
+The service auto-detects the request format from the model ID:
+
+| Model | Format |
+|---|---|
+| `anthropic.*` / `claude.*` | Anthropic Messages API |
+| `mistral.*` / others | OpenAI-compatible Messages API |
+| `titan.*` | Amazon Titan `inputText` |
