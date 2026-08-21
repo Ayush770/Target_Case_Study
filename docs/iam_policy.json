@@ -26,7 +26,18 @@
       "Sid": "BedrockDraft",
       "Effect": "Allow",
       "Action": [
-        "bedrock:InvokeModel"
+        "bedrock:InvokeModel",
+        "bedrock:ListFoundationModels"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "BedrockMarketplace",
+      "Effect": "Allow",
+      "Action": [
+        "aws-marketplace:ViewSubscriptions",
+        "aws-marketplace:Subscribe",
+        "aws-marketplace:Unsubscribe"
       ],
       "Resource": "*"
     }
