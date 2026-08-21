@@ -1,37 +1,40 @@
+"""Integration test for claim_processor.process_claim.
+
+Runs the full pipeline against local fixture files.
+AWS services (S3, Textract) are intentionally absent; both code paths
+have graceful fallbacks so this test must pass without credentials.
+"""
 from claim_processor import process_claim
 
 
-result = process_claim(
-    "CLAIM-001"
-)
+def test_process_claim_returns_expected_keys():
+    result = process_claim("CLAIM-001")
+
+    assert result["claim_id"] == "CLAIM-001"
+    assert "evidence" in result
+    assert "reconciliation" in result
+    assert "contract_position" in result
+    assert "historical_comparables" in result
 
 
-print("\nCLAIM ID")
-print(result["claim_id"])
+def test_evidence_has_facts():
+    result = process_claim("CLAIM-001")
+    facts = result["evidence"].get_all_facts()
+    assert len(facts) > 0
 
 
-print("\nEVIDENCE FACTS")
-for fact in result["evidence"].get_all_facts():
-    print(fact)
+def test_reconciliation_finds_mismatch():
+    result = process_claim("CLAIM-001")
+    # EDI=59 vs POD=58 — mismatch must be detected
+    assert result["reconciliation"] is not None
+    assert result["reconciliation"].id == "COUNT_MISMATCH"
 
 
-print("\nRECONCILIATION")
-print(result["reconciliation"])
+def test_contract_positions_produced():
+    result = process_claim("CLAIM-001")
+    assert len(result["contract_position"]) > 0
 
 
-print("\nCONTRACT POSITION")
-for item in result["contract_position"]:
-    print(item)
-
-
-print("\nHISTORICAL COMPARABLES")
-
-for item in result["historical_comparables"]:
-    print(
-        item.claim_id,
-        item.score,
-        item.settled
-    )
-
-
-print("\nClaim processor test passed.")
+def test_historical_comparables_produced():
+    result = process_claim("CLAIM-001")
+    assert len(result["historical_comparables"]) > 0

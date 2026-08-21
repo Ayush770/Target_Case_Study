@@ -13,6 +13,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app import build_case, build_draft
 from claim_processor import process_claim
+from genai_service import generate_draft as genai_generate_draft
 from s3_service import S3Service
 
 # ---------------------------------------------------------------------------
@@ -363,6 +364,7 @@ def serve_evidence(filename: str) -> FileResponse:
 def generate_draft() -> Any:
     try:
         case = build_case()
-        return build_draft(case)
+        deterministic = build_draft(case)
+        return genai_generate_draft(case, deterministic)
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))

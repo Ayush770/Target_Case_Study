@@ -1,95 +1,60 @@
 import json
 from pathlib import Path
 
-from historical_comparator import (
-    load_historical_claims,
-    find_comparables,
-)
+from historical_comparator import load_historical_claims, find_comparables
+
+ROOT = Path(__file__).resolve().parent.parent
 
 
-ROOT = Path("..")
+def _current_claim(snapshot, tms):
+    service = tms["service"]
+    return {
+        "carrier": snapshot["carrier"],
+        "service_level": service["name"],
+        "claimed_usd": str(snapshot["claim_amount_usd"]),
+        "issue_type": "DAMAGE+SHORTAGE+DELAY",
+        "evidence": "POD+INSPECTION+PHOTOS",
+        "notes": (
+            "No guaranteed service"
+            if not service["guaranteed"]
+            else "Guaranteed service"
+        ),
+    }
 
 
-# ---------------------------------------------------------
-# Load current claim source data
-# ---------------------------------------------------------
+def test_comparables_returned():
+    with open(ROOT / "03_claim_snapshot.json") as f:
+        snapshot = json.load(f)
+    with open(ROOT / "04_tms_shipment.json") as f:
+        tms = json.load(f)
 
-with (ROOT / "03_claim_snapshot.json").open() as file:
-    snapshot = json.load(file)
+    historical = load_historical_claims(ROOT / "12_historical_claims.csv")
+    results = find_comparables(_current_claim(snapshot, tms), historical, limit=5)
 
-with (ROOT / "04_tms_shipment.json").open() as file:
-    tms = json.load(file)
-
-
-# ---------------------------------------------------------
-# Derive current claim profile from source records
-# ---------------------------------------------------------
-
-service = tms["service"]
-
-current_claim = {
-    "carrier": snapshot["carrier"],
-    "service_level": service["name"],
-    "claimed_usd": str(snapshot["claim_amount_usd"]),
-
-    # Business dimensions represented by the supplied case.
-    "issue_type": "DAMAGE+SHORTAGE+DELAY",
-    "evidence": "POD+INSPECTION+PHOTOS",
-
-    # Derived from the actual service record.
-    "notes": (
-        "No guaranteed service"
-        if not service["guaranteed"]
-        else "Guaranteed service"
-    ),
-}
+    assert len(results) > 0
 
 
-# ---------------------------------------------------------
-# Load historical claims
-# ---------------------------------------------------------
+def test_scores_in_range():
+    with open(ROOT / "03_claim_snapshot.json") as f:
+        snapshot = json.load(f)
+    with open(ROOT / "04_tms_shipment.json") as f:
+        tms = json.load(f)
 
-historical_claims = load_historical_claims(
-    ROOT / "12_historical_claims.csv"
-)
+    historical = load_historical_claims(ROOT / "12_historical_claims.csv")
+    results = find_comparables(_current_claim(snapshot, tms), historical)
 
-
-# ---------------------------------------------------------
-# Find comparable claims
-# ---------------------------------------------------------
-
-results = find_comparables(
-    current_claim=current_claim,
-    historical_claims=historical_claims,
-    limit=5,
-)
+    for r in results:
+        assert 0 <= float(r.score) <= 1
 
 
-# ---------------------------------------------------------
-# Validate
-# ---------------------------------------------------------
+def test_sorted_descending():
+    with open(ROOT / "03_claim_snapshot.json") as f:
+        snapshot = json.load(f)
+    with open(ROOT / "04_tms_shipment.json") as f:
+        tms = json.load(f)
 
-assert results, "No historical comparables were returned."
+    historical = load_historical_claims(ROOT / "12_historical_claims.csv")
+    results = find_comparables(_current_claim(snapshot, tms), historical)
 
-print("\nHistorical comparables:\n")
-
-for result in results:
-    print(
-        f"{result.claim_id} | "
-        f"score={result.score} | "
-        f"claimed={result.claimed} | "
-        f"settled={result.settled} | "
-        f"settlement={result.settlement_pct}"
-    )
-
-    print(f"  reasons: {', '.join(result.reasons)}")
-    print()
-
-
-# Verify that deterministic carrier/service filtering worked.
-for result in results:
-    assert result.score >= 0
-    assert result.score <= 1
-
-
-print("Historical comparator test passed.")
+    scores = [float(r.score) for r in results]
+    assert scores == sorted(scores, reverse=True)

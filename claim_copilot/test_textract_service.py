@@ -1,44 +1,51 @@
-from evidence import EvidenceFact, EvidenceAnchor
+"""Unit tests for TextractService.
+
+AWS calls are mocked so these run fully offline without credentials.
+"""
+from unittest.mock import MagicMock, patch
+import pytest
+
+from textract_service import TextractService
 
 
-def parse_tms_delivery_fact(
-    tms_data: dict,
-):
-    """
-    Converts TMS EDI delivery event
-    into canonical EvidenceFact objects.
-    """
+MOCK_RESPONSE = {
+    "Blocks": [
+        {"BlockType": "LINE", "Text": "Five cartons showed crush damage"},
+        {"BlockType": "LINE", "Text": "14 unsellable units"},
+        {"BlockType": "WORD", "Text": "ignored"},          # non-LINE block
+        {"BlockType": "LINE", "Text": "Inspection fee: $420.00"},
+    ]
+}
 
-    facts = []
 
-    for event in tms_data.get("events", []):
+@patch("textract_service.boto3.client")
+def test_extract_text_joins_lines(mock_boto_client, tmp_path):
+    mock_client = MagicMock()
+    mock_client.detect_document_text.return_value = MOCK_RESPONSE
+    mock_boto_client.return_value = mock_client
 
-        if (
-            event.get("code") == "DELIVERED"
-            and event.get("source") == "EDI 214"
-            and event.get("pieces") is not None
-        ):
+    # Write a dummy file so open() succeeds
+    pdf = tmp_path / "test.pdf"
+    pdf.write_bytes(b"%PDF-dummy")
 
-            facts.append(
-                EvidenceFact(
-                    id="fact.edi_delivered_pieces",
-                    label="EDI delivered pieces",
-                    value=str(
-                        event["pieces"]
-                    ),
-                    status="verified",
-                    anchors=[
-                        EvidenceAnchor(
-                            file="04_tms_shipment.json",
-                            locator=(
-                                "DELIVERED event "
-                                "reported by EDI 214"
-                            ),
-                            source_role="carrier_edi",
-                            confidence=0.95,
-                        )
-                    ],
-                )
-            )
+    svc = TextractService()
+    result = svc.extract_text(str(pdf))
 
-    return facts
+    assert "Five cartons showed crush damage" in result
+    assert "14 unsellable units" in result
+    assert "Inspection fee: $420.00" in result
+    # WORD blocks must be excluded
+    assert "ignored" not in result
+
+
+@patch("textract_service.boto3.client")
+def test_extract_text_empty_response(mock_boto_client, tmp_path):
+    mock_client = MagicMock()
+    mock_client.detect_document_text.return_value = {"Blocks": []}
+    mock_boto_client.return_value = mock_client
+
+    pdf = tmp_path / "empty.pdf"
+    pdf.write_bytes(b"%PDF-dummy")
+
+    svc = TextractService()
+    assert svc.extract_text(str(pdf)) == ""
