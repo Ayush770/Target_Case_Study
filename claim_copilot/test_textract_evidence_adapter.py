@@ -1,7 +1,6 @@
 from textract_evidence_adapter import parse_inspection_report
 
-
-sample_text = """
+SAMPLE_TEXT = """
 INDEPENDENT CARGO INSPECTION REPORT
 
 Observed shipment condition
@@ -16,44 +15,36 @@ Inspection fee: $420.00 Repack labor: $300.00
 """
 
 
-facts = parse_inspection_report(sample_text)
+def test_parse_returns_five_facts():
+    facts = parse_inspection_report(SAMPLE_TEXT)
+    assert len(facts) == 5
 
 
-for fact in facts:
-    print(fact)
+def test_damaged_cartons():
+    facts = parse_inspection_report(SAMPLE_TEXT)
+    match = next(f for f in facts if f.id == "fact.inspection_damaged_cartons")
+    assert match.value == "5"
 
 
-assert len(facts) == 5
-
-assert any(
-    fact.id == "fact.inspection_damaged_cartons"
-    and fact.value == "5"
-    for fact in facts
-)
-
-assert any(
-    fact.id == "fact.inspection_unsellable_units"
-    and fact.value == "14"
-    for fact in facts
-)
-
-assert any(
-    fact.id == "fact.inspection_repackable_units"
-    and fact.value == "6"
-    for fact in facts
-)
-
-assert any(
-    fact.id == "fact.inspection_cost"
-    and fact.value == "420.00"
-    for fact in facts
-)
-
-assert any(
-    fact.id == "fact.repack_labor"
-    and fact.value == "300.00"
-    for fact in facts
-)
+def test_unsellable_units():
+    facts = parse_inspection_report(SAMPLE_TEXT)
+    match = next(f for f in facts if f.id == "fact.inspection_unsellable_units")
+    assert match.value == "14"
 
 
-print("Textract evidence adapter test passed.")
+def test_repackable_units():
+    facts = parse_inspection_report(SAMPLE_TEXT)
+    match = next(f for f in facts if f.id == "fact.inspection_repackable_units")
+    assert match.value == "6"
+
+
+def test_inspection_cost():
+    facts = parse_inspection_report(SAMPLE_TEXT)
+    match = next(f for f in facts if f.id == "fact.inspection_cost")
+    assert match.value == "420.00"
+
+
+def test_repack_labor():
+    facts = parse_inspection_report(SAMPLE_TEXT)
+    match = next(f for f in facts if f.id == "fact.repack_labor")
+    assert match.value == "300.00"

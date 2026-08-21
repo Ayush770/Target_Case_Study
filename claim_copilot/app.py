@@ -8,8 +8,6 @@ LLM provider is only allowed to turn the vetted evidence packet into prose.
 from __future__ import annotations
 
 import csv
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
 import hashlib
 import json
 import mimetypes
@@ -52,7 +50,7 @@ class Fact:
     anchors: list[Anchor]
 
 
-def money(value: Decimal | float | int) -> str:
+def money(value: Decimal | float | int | str) -> str:
     return f"${Decimal(str(value)):,.2f}"
 
 
@@ -117,7 +115,8 @@ def parse_email_thread() -> dict[str, Any]:
     message = BytesParser(policy=policy.default).parsebytes(
         (ROOT / "02_claim_email_thread.eml").read_bytes()
     )
-    body = message.get_body(preferencelist=("plain",)).get_content()
+    body_part = message.get_body(preferencelist=("plain",))
+    body = body_part.get_content() if body_part else ""
     offer = re.search(r"Offer:\s*\$(7,225\.00)", body)
     packaging = "vendor packaging specification" in body.lower()
     return {

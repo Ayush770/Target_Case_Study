@@ -73,7 +73,7 @@ def repack_labor_position(
 
 def delay_position(
     requested_amount: Decimal,
-    guaranteed_service: bool,
+    guaranteed_service: bool | None,
 ) -> ContractPosition:
     if guaranteed_service:
         return ContractPosition(
