@@ -58,3 +58,16 @@ def test_source_files_traceability():
 def test_get_fact_missing_returns_none():
     claim = ClaimEvidence(claim_id="CLAIM-001")
     assert claim.get_fact("fact.nonexistent") is None
+
+
+def test_get_fact_present_returns_correct_value():
+    claim = ClaimEvidence(claim_id="CLAIM-001")
+    claim.add_facts([_make_pod_fact(), _make_inspection_fact()])
+
+    pod_fact = claim.get_fact("fact.pod_received_cartons")
+    inspection_fact = claim.get_fact("fact.inspection_unsellable_units")
+
+    assert pod_fact is not None
+    assert inspection_fact is not None
+    assert pod_fact.value == "58"
+    assert inspection_fact.value == "14"

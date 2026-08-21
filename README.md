@@ -23,7 +23,7 @@ Open **`http://127.0.0.1:8000`**
 
 ---
 
-## AWS Setup
+## AWS Setuppip install -r requirements.txt
 
 ```bash
 export AWS_ACCESS_KEY_ID=your_key
@@ -144,7 +144,40 @@ Target_Case_Study/
 
 ## Known Limitations
 
-- Negotiation draft is a deterministic template — LLM boundary exists in `build_draft()` but no live model call is made
 - `10_carrier_service_agreement.pdf` not parsed — contract rules are hardcoded
 - Photos not analyzed — no image/vision model
 - No authentication or multi-tenant isolation
+
+---
+
+## GenAI Layer — Amazon Bedrock
+
+The deterministic pipeline calculates **all claim values and contract positions**.  
+Bedrock is used **only** to draft grounded negotiation prose from the pre-built evidence packet.
+
+### How it works
+
+1. Deterministic code computes direct cargo loss, contract positions, and reconciliation findings.
+2. A bounded evidence packet (facts, positions, comparators — no raw documents or credentials) is sent to Bedrock.
+3. Bedrock drafts a negotiation message citing only facts and rules present in the packet.
+4. The response is validated: required fields, grounded citations, `approval_required: true`.
+5. Human approval is required before the draft is sent.
+6. Any failure — disabled, missing model ID, invalid JSON, AWS error, failed validation — returns the deterministic fallback transparently.
+
+### Enabling GenAI
+
+```bash
+export GENAI_ENABLED=true
+export AWS_REGION=ap-south-1
+export BEDROCK_MODEL_ID=anthropic.claude-3-sonnet-20240229-v1:0
+uvicorn api:app --reload
+```
+
+Without `GENAI_ENABLED=true`, the `/api/draft` endpoint returns the deterministic fallback draft with `"mode": "deterministic_fallback"`.
+
+### What the model cannot do
+
+- Recalculate claim values or contract liability
+- Resolve evidence conflicts (EDI vs POD)
+- Invent facts, amounts, dates, or citations
+- Set `approval_required` to anything other than `true`
